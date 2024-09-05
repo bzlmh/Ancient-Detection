@@ -1,124 +1,3 @@
-# import torch.nn as nn
-# import torch.nn.functional as F
-# import math
-# import torch
-# # BiFPN
-# class BiFPN_Add2(nn.Module):
-#     def __init__(self, c1, c2):
-#         super(BiFPN_Add2, self).__init__()
-#         self.w = nn.Parameter(torch.ones(2, dtype=torch.float32), requires_grad=True)
-#         self.epsilon = 0.0001
-#         self.conv = nn.Conv2d(c1, c2, kernel_size=1, stride=1, padding=0)
-#         self.silu = nn.SiLU()
-#
-#     def forward(self, x):
-#         w = self.w
-#         weight = w / (torch.sum(w, dim=0) + self.epsilon)
-#         return self.conv(self.silu(weight[0] * x[0] + weight[1] * x[1]))
-#
-# import torch
-# import torch.nn as nn
-# import torch.nn.functional as F
-#
-#
-# def normal_init(module, mean=0, std=1, bias=0):
-#     if hasattr(module, 'weight') and module.weight is not None:
-#         nn.init.normal_(module.weight, mean, std)
-#     if hasattr(module, 'bias') and module.bias is not None:
-#         nn.init.constant_(module.bias, bias)
-#
-#
-# def constant_init(module, val, bias=0):
-#     if hasattr(module, 'weight') and module.weight is not None:
-#         nn.init.constant_(module.weight, val)
-#     if hasattr(module, 'bias') and module.bias is not None:
-#         nn.init.constant_(module.bias, bias)
-#
-#
-# class FPN(nn.Module):
-#     '''only for resnet50,101,152'''
-#
-#     def __init__(self, features=256, use_p5=True):
-#         super(FPN, self).__init__()
-#         self.prj_5 = nn.Conv2d(2048, features, kernel_size=1)
-#         self.prj_4 = nn.Conv2d(1024, features, kernel_size=1)
-#         self.prj_3 = nn.Conv2d(512, features, kernel_size=1)
-#         self.conv_5 = nn.Conv2d(features, features, kernel_size=3, padding=1)
-#         self.conv_4 = nn.Conv2d(features, features, kernel_size=3, padding=1)
-#         self.conv_3 = nn.Conv2d(features, features, kernel_size=3, padding=1)
-#         self.bifpn1 = BiFPN_Add2(features, features)
-#         self.bifpn2 = BiFPN_Add2(features, features)
-#         self.bifpn3 = BiFPN_Add2(1024, 1024)
-#         self.bifpn4 = BiFPN_Add2(2048, 2048)
-#         if use_p5:
-#             self.conv_out6 = nn.Conv2d(features, features, kernel_size=3, padding=1, stride=2)
-#         else:
-#             self.conv_out6 = nn.Conv2d(2048, features, kernel_size=3, padding=1, stride=2)
-#         self.conv_out7 = nn.Conv2d(features, features, kernel_size=3, padding=1, stride=2)
-#         self.use_p5 = use_p5
-#
-#         self.apply(self.init_conv_kaiming)
-#
-#     def upsamplelike(self, inputs):
-#         src, target = inputs
-#         return F.interpolate(src, size=(target.shape[2], target.shape[3]),
-#                              mode='nearest')
-#
-#     def adjust_channels(self, src, target):
-#         src_channels = src.shape[1]
-#         target_channels = target.shape[1]
-#         if src_channels == target_channels:
-#             return src
-#         conv = nn.Conv2d(src_channels, target_channels, kernel_size=1).to('cuda')
-#         adjusted_src = conv(src)
-#         return adjusted_src
-#
-#     def downsample_like(self, src, target):
-#         src_h, src_w = src.shape[2], src.shape[3]
-#         target_h, target_w = target.shape[2], target.shape[3]
-#         adjusted_src = self.adjust_channels(src, target)
-#         downsampled_output = F.interpolate(adjusted_src, size=(target_h, target_w), mode='nearest')
-#         return downsampled_output
-#
-#     def init_conv_kaiming(self, module):
-#         if isinstance(module, nn.Conv2d):
-#             nn.init.kaiming_uniform_(module.weight, a=1)
-#
-#             if module.bias is not None:
-#                 nn.init.constant_(module.bias, 0)
-#
-#     def forward(self, x):
-#         C2,C3, C4, C5 = x
-#         P5 = self.prj_5(C5)
-#         P4 = self.prj_4(C4)
-#         P3 = self.prj_3(C3)
-#         N3 = self.prj_3(C3)
-#         # print(P5.shape)
-#         # print(P4.shape)
-#         #up-bottem
-#         P4 = self.bifpn1([P4, self.upsamplelike([P5, C4])])
-#         P3 = self.bifpn2([P3, self.upsamplelike([P4, C3])])
-#         # P4 = self.bifpn1([P4, self.dysample(P5)])
-#         # P3 = self.bifpn2([P3, self.dysample(P4)])
-#         P3 = self.conv_3(P3)
-#         P4 = self.conv_4(P4)
-#         P5 = self.conv_5(P5)
-#         #bottem-up
-#         N4 = self.bifpn3([self.downsample_like(N3, C4), C4])
-#         N5 = self.bifpn4([self.downsample_like(N4, C5), C5])
-#         N4 = self.prj_4(N4)
-#         N5 = self.prj_5(N5)
-#         N4=self.conv_4(N4)
-#         N5=self.conv_5(N5)
-#         N3 = self.conv_3(N3)
-#         #line consize
-#         P5 = P5 + N5
-#         P4 = P4 + N4
-#         P3 = P3 + N3
-#         P5 = P5 if self.use_p5 else C5
-#         P6 = self.conv_out6(P5)
-#         P7 = self.conv_out7(F.relu(P6))
-#         return [P3, P4, P5, P6, P7]
 
 import torch
 import torch.nn as nn
@@ -142,7 +21,7 @@ class ChannelAttention(nn.Module):
         return cattn
 
 
-# 定义 DUC 模块
+
 class DUC(nn.Module):
     def __init__(self, in_channel, out_channel, factor):
         super(DUC, self).__init__()
@@ -161,7 +40,7 @@ class DUC(nn.Module):
         x = self.conv2(x)
         return x
 
-# 定义 SpatialAttention 模块
+
 class SpatialAttention(nn.Module):
     def __init__(self, channel):
         super(SpatialAttention, self).__init__()
@@ -178,7 +57,7 @@ class SpatialAttention(nn.Module):
         sattn = self.sa(x2)
         return sattn
 
-# 定义 HDCblock 模块
+
 class HDCblock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(HDCblock, self).__init__()
@@ -204,7 +83,6 @@ class HDCblock(nn.Module):
 
         return out
 
-# 定义 FPN 模块
 class FPN(nn.Module):
     '''only for resnet50,101,152'''
 
