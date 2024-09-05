@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# 定义 ChannelAttention 模块
+
 class ChannelAttention(nn.Module):
     def __init__(self, dim, reduction=8):
         super(ChannelAttention, self).__init__()
@@ -148,8 +148,3 @@ class FPN(nn.Module):
         P6 = self.conv_out6(P5)
         P7 = self.conv_out7(F.relu(P6))
         return [P3, P4, P5, P6, P7]
-
-
-
-
-
