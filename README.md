@@ -1,5 +1,5 @@
-## RA-GAN: Region-Adaptive GAN for Binarization  on Degraded Document Images
-<img width="600" alt="Figure1" src="frame/Overall%20Architecture.jpg">
+## Ancient Manuscript Detection: Multi-Scale Character Consistency Position Estimation
+<img width="600" alt="Figure1" src="frame/Overall%20architecture.jpg">
 
 ## Description
 This is the official implementation for our paper [RA-GAN: Region-Adaptive GAN for Binarization  on Degraded Document Image]. 
